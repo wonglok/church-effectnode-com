@@ -7,12 +7,12 @@ import { EnvMap } from "../pages-code/EnvMap/EnvMap";
 // import { Game } from "../pages-code/Game/Game";
 // import styles from "../styles/Home.module.css";
 
-export const AVATAR_LOCAL_STOAGE = "myavatarlink";
+export const AVATAR_LOCAL_STORE_URL = "myavatarlink";
 export default function Home() {
   let [avatarURL, setAvatarURL] = useState(null);
 
   useEffect(() => {
-    let url = window.localStorage.getItem(AVATAR_LOCAL_STOAGE);
+    let url = window.localStorage.getItem(AVATAR_LOCAL_STORE_URL);
     if (
       url &&
       url !== "false" &&
@@ -26,7 +26,7 @@ export default function Home() {
   }, []);
 
   let onReady = (url) => {
-    window.localStorage.setItem(AVATAR_LOCAL_STOAGE, url);
+    window.localStorage.setItem(AVATAR_LOCAL_STORE_URL, url);
     setAvatarURL(url);
   };
 

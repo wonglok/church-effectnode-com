@@ -3,6 +3,7 @@ import { EnvMap } from "../EnvMap/EnvMap";
 import { Floor, GameControls, YourAvatar } from "../GameState/GameState";
 import router from "next/router";
 import { useEffect } from "react";
+import { AVATAR_LOCAL_STORE_URL } from "../../pages";
 export function Game() {
   const dpr = 1;
 
@@ -14,11 +15,17 @@ export function Game() {
 }
 
 function GameContent() {
-  let url = router.router.query.avatar;
+  let [url, setURL] = useState(null);
 
   useEffect(() => {
-    if (!url) {
-      window.location = "/";
+    if (url === null) {
+      let str = window.localStorage(AVATAR_LOCAL_STORE_URL);
+      // window.location = "/";
+      if (typeof str === "string" && str.indexOf("http") === 0) {
+        setURL(str);
+      } else {
+        window.location = "/";
+      }
     }
   });
 

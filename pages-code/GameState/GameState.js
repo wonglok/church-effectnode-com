@@ -1,4 +1,4 @@
-import { useFBX, useGLTF } from "@react-three/drei";
+import { Text, useFBX, useGLTF } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { MapControls, SkeletonUtils } from "three-stdlib";
@@ -283,10 +283,19 @@ export function YourAvatar() {
   return (
     <Suspense
       fallback={
-        <mesh>
-          <meshStandardMaterial color={"#blue"}></meshStandardMaterial>
-          <sphereBufferGeometry args={[50, 24, 24]}></sphereBufferGeometry>
-        </mesh>
+        <Text
+          color={"#EC2D2D"}
+          fontSize={12}
+          maxWidth={200}
+          lineHeight={1}
+          letterSpacing={0.02}
+          textAlign={"left"}
+          font="https://fonts.gstatic.com/s/raleway/v14/1Ptrg8zYS_SKggPNwK4vaqI.woff"
+          anchorX="center"
+          anchorY="middle"
+        >
+          Loading YOU...
+        </Text>
       }
     >
       <YourAvatarInside></YourAvatarInside>
