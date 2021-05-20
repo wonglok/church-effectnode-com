@@ -1,4 +1,5 @@
 import { Canvas } from "@react-three/fiber";
+import { Suspense } from "react";
 import { EnvMap } from "../EnvMap/EnvMap";
 import { Floor, GameControls, YourAvatar } from "../GameState/GameState";
 
@@ -18,11 +19,16 @@ function GameContent() {
       {/*  */}
       {/*  */}
       <Floor></Floor>
-      <directionalLight position={[10, 10, 10]}></directionalLight>
-      <ambientLight></ambientLight>
+      <directionalLight
+        intensity={0.5}
+        position={[10, 10, 10]}
+      ></directionalLight>
+      <ambientLight intensity={0.5}></ambientLight>
       <EnvMap></EnvMap>
       <GameControls></GameControls>
-      <YourAvatar></YourAvatar>
+      <Suspense fallback={null}>
+        <YourAvatar></YourAvatar>
+      </Suspense>
     </group>
   );
 }

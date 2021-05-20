@@ -203,6 +203,8 @@ export function YourAvatar({
   let cloned = useMemo(() => {
     let cloned = SkeletonUtils.clone(scene);
 
+    cloned.scale.set(100, 100, 100);
+
     return cloned;
   }, [scene]);
 
@@ -220,12 +222,15 @@ export function YourAvatar({
 export function Floor() {
   return (
     <group>
+      <gridHelper args={[20000, 100, "red", "red"]}></gridHelper>
       <mesh rotation-x={Math.PI * -0.5}>
         <planeBufferGeometry args={[20000, 20000, 2, 2]}></planeBufferGeometry>
-        <meshStandardMaterial
-          metalness={0.9}
-          roughness={0.1}
-        ></meshStandardMaterial>
+        <shaderMaterial
+          fragmentShader={`
+        void main(void) {
+          discard;
+        }`}
+        ></shaderMaterial>
       </mesh>
       {/*  */}
       {/*  */}
