@@ -1,15 +1,183 @@
+import { Stage, useFBX, useGLTF, OrbitControls, Text } from "@react-three/drei";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import Head from "next/head";
-import { Game } from "../pages-code/Game/Game";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { AnimationMixer } from "three";
+import { EnvMap } from "../pages-code/EnvMap/EnvMap";
+// import { Game } from "../pages-code/Game/Game";
 // import styles from "../styles/Home.module.css";
 
+export const AVATAR_LOCAL_STOAGE = "myavatarlink";
 export default function Home() {
+  let [avatarURL, setAvatarURL] = useState(null);
+
+  useEffect(() => {
+    let url = window.localStorage.getItem(AVATAR_LOCAL_STOAGE);
+    if (
+      url &&
+      url !== "false" &&
+      typeof url === "string" &&
+      url.indexOf("http") === 0
+    ) {
+      setAvatarURL(url);
+    } else {
+      setAvatarURL(false);
+    }
+  }, []);
+
+  let onReady = (url) => {
+    window.localStorage.setItem(AVATAR_LOCAL_STOAGE, url);
+    setAvatarURL(url);
+  };
+
   return (
     <div className={"w-full h-full"}>
       <Head>
         <title>Create Next App</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Game></Game>
+
+      {avatarURL && <AvatarReady url={avatarURL}></AvatarReady>}
+      {avatarURL === false && <AvatarChooser onReady={onReady}></AvatarChooser>}
     </div>
+  );
+}
+function AvatarReady({ url }) {
+  return (
+    <Canvas>
+      <directionalLight
+        intensity={0.2}
+        position={[10, 10, 10]}
+      ></directionalLight>
+
+      <ambientLight intensity={0.2}></ambientLight>
+      <EnvMap></EnvMap>
+
+      <group scale={0.04} position-y={2} position-z={-0.1}>
+        <Text
+          color={"#EC2D2D"}
+          fontSize={12}
+          maxWidth={200}
+          lineHeight={1}
+          letterSpacing={0.02}
+          textAlign={"left"}
+          font="https://fonts.gstatic.com/s/raleway/v14/1Ptrg8zYS_SKggPNwK4vaqI.woff"
+          anchorX="center"
+          anchorY="middle"
+          onClick={() => {
+            window.location.assign("/game?avatar=" + encodeURIComponent(url));
+          }}
+          onPointerEnter={() => {
+            document.body.style.cursor = "pointer";
+          }}
+          onPointerLeave={() => {
+            document.body.style.cursor = "";
+          }}
+        >
+          Start Game!
+        </Text>
+      </group>
+
+      <AvatarUnit url={url}></AvatarUnit>
+    </Canvas>
+  );
+}
+
+function AvatarUnit({ url }) {
+  return (
+    <Suspense
+      fallback={
+        <mesh>
+          <meshStandardMaterial color={"blue"}></meshStandardMaterial>
+          <sphereBufferGeometry args={[50, 24, 24]}></sphereBufferGeometry>
+        </mesh>
+      }
+    >
+      <AvatarUnitInternal url={url}></AvatarUnitInternal>
+    </Suspense>
+  );
+}
+
+function AvatarUnitInternal({ url }) {
+  let orbit = useRef();
+  let { scene, nodes } = useGLTF(url);
+  let animix = useRef(new AnimationMixer(scene));
+
+  let standingGreetingFBX = useFBX("/actions/standing-greeting.fbx");
+  let wavingFBX = useFBX("/actions/waving-gesture.fbx");
+  let bowFBX = useFBX("/actions/quick-formal-bow.fbx");
+  let hipHopFBX = useFBX("/actions/hip-hop-dancing.fbx");
+
+  useEffect(() => {
+    scene.traverse((item) => {
+      if (item) {
+        item.frustumCulled = false;
+      }
+    });
+    nodes.Head.getWorldPosition(camera.position);
+    camera.position.z = 3;
+  }, [scene]);
+
+  let { camera } = useThree();
+
+  useFrame(() => {
+    nodes.Head.getWorldPosition(orbit.current.target);
+    camera.lookAt(orbit.current.target);
+  });
+
+  useEffect(() => {
+    let clips = [
+      standingGreetingFBX.animations[0],
+      wavingFBX.animations[0],
+      bowFBX.animations[0],
+      hipHopFBX.animations[0],
+    ];
+    let clip = clips[Math.floor(clips.length * Math.random())];
+    let action = animix.current.clipAction(clip, scene);
+    action.play();
+  }, []);
+
+  useFrame((st, dt) => {
+    if (animix.current) {
+      animix.current.update(dt);
+    }
+  });
+
+  return (
+    <group>
+      <OrbitControls ref={orbit}></OrbitControls>
+      <group>
+        <primitive object={scene}></primitive>
+      </group>
+    </group>
+  );
+}
+
+function AvatarChooser({
+  onReady = (v) => {
+    console.log(v);
+  },
+}) {
+  useEffect(() => {
+    function receiveMessage(event) {
+      setTimeout(() => {
+        console.log(event.data);
+        onReady(event.data);
+        // https://d1a370nemizbjq.cloudfront.net/283ab29b-5ed6-4063-bf4c-a9739a7465bb.glb
+      }, 0);
+    }
+
+    window.addEventListener("message", receiveMessage, false);
+    return () => {
+      window.removeEventListener("message", receiveMessage);
+    };
+  }, []);
+
+  return (
+    <iframe
+      className="w-full h-full"
+      src={"https://effectnode.readyplayer.me/"}
+      allow={"camera *; microphone *"}
+    ></iframe>
   );
 }

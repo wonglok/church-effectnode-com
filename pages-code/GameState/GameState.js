@@ -169,6 +169,7 @@ export const Hand = makeSimpleShallowStore({
   goingTo: new Vector3(),
   camAt: new Vector3(),
   avatarAt: new Vector3(),
+  avatarHead: new Vector3(),
   avatarRot: new Vector3(),
   avatarLoading: true,
   avatarMode: "standing",
@@ -265,13 +266,14 @@ export function GameControls() {
       // camera.position.y = zoom.y;
       // camera.position.z = zoom.z;
 
-      ctrls.current.target.copy(Hand.avatarAt);
-      ctrls.current.target.y += 150;
+      ctrls.current.target.copy(Hand.avatarHead);
+      // ctrls.current.target.y += 150;
+
       ctrls.current.object.position.x = Hand.avatarAt.x;
       ctrls.current.object.position.y =
         ctrls.current.target.y + zoom.current.y * 1;
       ctrls.current.object.position.z =
-        ctrls.current.target.z + zoom.current.z * 1.52;
+        ctrls.current.target.z + zoom.current.z * 1;
     }
   });
   return <group></group>;
@@ -295,7 +297,9 @@ export function YourAvatar() {
 export function YourAvatarInside({
   url = "https://d1a370nemizbjq.cloudfront.net/283ab29b-5ed6-4063-bf4c-a9739a7465bb.glb",
 }) {
-  Hand.avatarLoading = false;
+  useEffect(() => {
+    Hand.avatarLoading = false;
+  }, []);
   let { scene } = useGLTF(url);
   let myself = useRef();
   let actions = useRef({});
@@ -306,7 +310,7 @@ export function YourAvatarInside({
   actions.current.standing = useFBX("/actions/standing.fbx");
 
   let object = useMemo(() => {
-    let cloned = SkeletonUtils.clone(scene);
+    let cloned = scene; // SkeletonUtils.clone(scene);
 
     cloned.scale.set(100, 100, 100);
     cloned.traverse((item) => {
@@ -324,6 +328,11 @@ export function YourAvatarInside({
       myself.current.lookAt(Hand.goingTo);
       myself.current.position.copy(Hand.avatarAt);
       Hand.avatarRot.copy(myself.current.rotation);
+    }
+
+    let head = object.getObjectByName("Head");
+    if (head) {
+      head.getWorldPosition(Hand.avatarHead);
     }
 
     if (
@@ -428,14 +437,27 @@ export function Floor() {
   let o3 = new Object3D();
 
   let dir = new Vector3();
+
+  let floor = useRef();
+
+  let { raycaster, camera, mouse } = useThree();
   useFrame(() => {
-    if (Hand.avatarMode === "running") {
+    if (Hand.avatarMode === "running" && !Hand.avatarLoading) {
       o3.position.copy(Hand.avatarAt);
       o3.lookAt(Hand.goingTo);
 
       o3.getWorldDirection(dir);
       dir.normalize().multiplyScalar(10);
       Hand.avatarAt.add(dir);
+
+      if (Hand.isDown && floor.current) {
+        raycaster.setFromCamera(mouse, camera);
+        let res = raycaster.intersectObject(floor.current);
+        if (res && res[0]) {
+          // console.log(res);
+          Hand.goingTo.copy(res[0].point);
+        }
+      }
     }
   });
 
@@ -443,6 +465,7 @@ export function Floor() {
     <group>
       <gridHelper args={[20000, 100, "red", "red"]}></gridHelper>
       <mesh
+        ref={floor}
         onPointerDown={(ev) => {
           if (Hand.avatarLoading) {
             return;

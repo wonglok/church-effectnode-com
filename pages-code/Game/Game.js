@@ -1,8 +1,8 @@
 import { Canvas } from "@react-three/fiber";
-import { Suspense } from "react";
 import { EnvMap } from "../EnvMap/EnvMap";
 import { Floor, GameControls, YourAvatar } from "../GameState/GameState";
-
+import router from "next/router";
+import { useEffect } from "react";
 export function Game() {
   const dpr = 1;
 
@@ -14,6 +14,14 @@ export function Game() {
 }
 
 function GameContent() {
+  let url = router.router.query.avatar;
+
+  useEffect(() => {
+    if (!url) {
+      window.location = "/";
+    }
+  });
+
   return (
     <group>
       {/*  */}
@@ -27,7 +35,7 @@ function GameContent() {
       <EnvMap></EnvMap>
       <GameControls></GameControls>
 
-      <YourAvatar></YourAvatar>
+      <YourAvatar url={url}></YourAvatar>
     </group>
   );
 }
