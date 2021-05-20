@@ -170,6 +170,7 @@ export const Hand = makeSimpleShallowStore({
   camAt: new Vector3(),
   avatarAt: new Vector3(),
   avatarRot: new Vector3(),
+  avatarLoading: true,
   avatarMode: "standing",
 });
 
@@ -270,7 +271,7 @@ export function GameControls() {
       ctrls.current.object.position.y =
         ctrls.current.target.y + zoom.current.y * 1;
       ctrls.current.object.position.z =
-        ctrls.current.target.z + zoom.current.z * 1;
+        ctrls.current.target.z + zoom.current.z * 1.52;
     }
   });
   return <group></group>;
@@ -294,6 +295,7 @@ export function YourAvatar() {
 export function YourAvatarInside({
   url = "https://d1a370nemizbjq.cloudfront.net/283ab29b-5ed6-4063-bf4c-a9739a7465bb.glb",
 }) {
+  Hand.avatarLoading = false;
   let { scene } = useGLTF(url);
   let myself = useRef();
   let actions = useRef({});
@@ -307,9 +309,14 @@ export function YourAvatarInside({
     let cloned = SkeletonUtils.clone(scene);
 
     cloned.scale.set(100, 100, 100);
+    cloned.traverse((item) => {
+      if (item.material) {
+        item.frustumCulled = false;
+      }
+    });
 
     return cloned;
-  }, [scene.uuid]);
+  }, []);
 
   // let dir = new Vector3();
   useFrame(() => {
@@ -370,17 +377,23 @@ function Cursor({}) {
 }
 
 function AnimationCtrl({ myself, actions }) {
-  let animix = useRef();
-
   Hand.makeKeyReactive("avatarMode");
+  let animix = useRef(new AnimationMixer(myself.current));
+  let lastAction = useRef();
   useEffect(() => {
-    let mixer = (animix.current = new AnimationMixer(myself.current));
+    let mixer = animix.current;
+    if (lastAction.current) {
+      lastAction.current.fadeOut(0.2);
+    }
 
     if (Hand.avatarMode === "running") {
       //
       let clip = actions.current.running.animations[0];
       let action = mixer.clipAction(clip, myself.current);
+      action.reset();
+      action.fadeIn(0.2);
       action.play();
+      lastAction.current = action;
     }
     if (Hand.avatarMode === "standing") {
       //300
@@ -392,11 +405,13 @@ function AnimationCtrl({ myself, actions }) {
       ];
       let clip = clips[Math.floor(clips.length * Math.random())];
       let action = mixer.clipAction(clip, myself.current);
+      action.reset();
+      action.fadeIn(0.2);
       action.play();
+      lastAction.current = action;
     }
-
     return () => {
-      mixer.stopAllAction();
+      // mixer.stopAllAction();
     };
   }, [Hand.avatarMode]);
 
@@ -429,14 +444,23 @@ export function Floor() {
       <gridHelper args={[20000, 100, "red", "red"]}></gridHelper>
       <mesh
         onPointerDown={(ev) => {
+          if (Hand.avatarLoading) {
+            return;
+          }
           Hand.isDown = true;
           Hand.goingTo.copy(ev.point);
         }}
         onPointerUp={() => {
+          if (Hand.avatarLoading) {
+            return;
+          }
           Hand.isDown = false;
           Hand.avatarMode = "running";
         }}
         onPointerMove={(ev) => {
+          if (Hand.avatarLoading) {
+            return;
+          }
           if (Hand.isDown) {
             Hand.goingTo.copy(ev.point);
             Hand.avatarMode = "running";
