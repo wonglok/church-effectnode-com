@@ -38,6 +38,15 @@ export default function Home() {
       </Head>
 
       {avatarURL && <AvatarReady url={avatarURL}></AvatarReady>}
+      {avatarURL && (
+        <div
+          onClick={() => setAvatarURL(false)}
+          className="absolute top-0 right-0 m-2 p-3 rounded-xl bg-yellow-400 text-white shadow-xl"
+        >
+          Customise Avatar
+          <div className="absolute top-0 right-0 p-3 bg-yellow-400 rounded-full -mr-1 -mt-1 animate-ping"></div>
+        </div>
+      )}
       {avatarURL === false && <AvatarChooser onReady={onReady}></AvatarChooser>}
     </div>
   );
