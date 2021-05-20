@@ -1,10 +1,11 @@
 import { Text, useFBX, useGLTF } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
-import { MapControls, SkeletonUtils } from "three-stdlib";
+import { MapControls, OrbitControls, SkeletonUtils } from "three-stdlib";
 import { usePinch, useWheel } from "react-use-gesture";
 import {
   AnimationMixer,
+  Camera,
   Euler,
   Object3D,
   SphereBufferGeometry,
@@ -176,7 +177,7 @@ export const Hand = makeSimpleShallowStore({
 });
 
 export function GameControls() {
-  const minLimit = 25;
+  const minLimit = 100;
   const maxLimit = 500;
   const zoom = useRef(new Vector3(0, 400, 400));
 
@@ -240,7 +241,7 @@ export function GameControls() {
     camera.updateProjectionMatrix();
 
     camera.position.x = 0;
-    camera.position.y = 150;
+    camera.position.y = 100;
     camera.position.z = 150;
     camera.rotation.y = 0;
 
@@ -255,6 +256,7 @@ export function GameControls() {
 
     return () => {
       ctrl.dispose();
+      camera.lookAt(Hand.avatarHead);
     };
   }, []);
 
@@ -262,18 +264,12 @@ export function GameControls() {
     if (ctrls.current) {
       ctrls.current.update();
 
-      // camera.position.x = Hand.avatarAt.x;
-      // camera.position.y = zoom.y;
-      // camera.position.z = zoom.z;
-
       ctrls.current.target.copy(Hand.avatarHead);
-      // ctrls.current.target.y += 150;
 
       ctrls.current.object.position.x = Hand.avatarAt.x;
       ctrls.current.object.position.y =
-        ctrls.current.target.y + zoom.current.y * 0.6;
-      ctrls.current.object.position.z =
-        ctrls.current.target.z + zoom.current.z * 1;
+        ctrls.current.target.y + zoom.current.y - 100;
+      ctrls.current.object.position.z = ctrls.current.target.z + zoom.current.z;
     }
   });
   return <group></group>;
@@ -283,19 +279,21 @@ export function YourAvatar() {
   return (
     <Suspense
       fallback={
-        <Text
-          color={"#EC2D2D"}
-          fontSize={12}
-          maxWidth={200}
-          lineHeight={1}
-          letterSpacing={0.02}
-          textAlign={"left"}
-          font="https://fonts.gstatic.com/s/raleway/v14/1Ptrg8zYS_SKggPNwK4vaqI.woff"
-          anchorX="center"
-          anchorY="middle"
-        >
-          Loading YOU...
-        </Text>
+        <group scale={5} position-y={11} rotation-x={Math.PI * -0.1}>
+          <Text
+            color={"#EC2D2D"}
+            fontSize={12}
+            maxWidth={200}
+            lineHeight={1}
+            letterSpacing={0.02}
+            textAlign={"left"}
+            font="https://fonts.gstatic.com/s/raleway/v14/1Ptrg8zYS_SKggPNwK4vaqI.woff"
+            anchorX="center"
+            anchorY="middle"
+          >
+            Loading YOU...
+          </Text>
+        </group>
       }
     >
       <YourAvatarInside></YourAvatarInside>
@@ -322,6 +320,7 @@ export function YourAvatarInside({
     let cloned = scene; // SkeletonUtils.clone(scene);
 
     cloned.scale.set(100, 100, 100);
+
     cloned.traverse((item) => {
       if (item.material) {
         item.frustumCulled = false;

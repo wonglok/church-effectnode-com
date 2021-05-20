@@ -2,7 +2,7 @@ import { Stage, useFBX, useGLTF, OrbitControls, Text } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import Head from "next/head";
 import { Suspense, useEffect, useRef, useState } from "react";
-import { AnimationMixer } from "three";
+import { AnimationMixer, Object3D, Vector3 } from "three";
 import { EnvMap } from "../pages-code/EnvMap/EnvMap";
 import { makeSimpleShallowStore } from "../pages-code/GameState/GameState";
 // import { Game } from "../pages-code/Game/Game";
@@ -11,10 +11,10 @@ import { makeSimpleShallowStore } from "../pages-code/GameState/GameState";
 export const AVATAR_LOCAL_STORE_URL = "myavatarlink";
 
 export const Status = makeSimpleShallowStore({
-  isLoading: "loading",
+  loadingStage: "loading-screen",
 });
 export default function Home() {
-  Status.makeKeyReactive("isLoading");
+  Status.makeKeyReactive("loadingStage");
   let [avatarURL, setAvatarURL] = useState(null);
 
   useEffect(() => {
@@ -43,8 +43,8 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      {avatarURL && <AvatarReady url={avatarURL}></AvatarReady>}
-      {Status.isLoading === "done" && avatarURL && (
+      {avatarURL && <AvatarURLReady url={avatarURL}></AvatarURLReady>}
+      {Status.loadingStage === "welcome-screen" && avatarURL && (
         <div
           onClick={() => setAvatarURL(false)}
           className="absolute top-0 right-0 m-2 p-3 rounded-xl bg-yellow-400 text-white shadow-xl"
@@ -57,7 +57,7 @@ export default function Home() {
     </div>
   );
 }
-function AvatarReady({ url }) {
+function AvatarURLReady({ url }) {
   return (
     <Canvas>
       <directionalLight
@@ -76,7 +76,7 @@ function AvatarReady({ url }) {
 function ElementOnFinishLoading({}) {
   useEffect(() => {
     return () => {
-      Status.isLoading = "done";
+      Status.loadingStage = "welcome-screen";
     };
   }, []);
   return (
@@ -113,7 +113,7 @@ function AvatarUnit({ url }) {
           anchorX="center"
           anchorY="middle"
           onPointerDown={() => {
-            window.location.assign("/game?avatar=" + encodeURIComponent(url));
+            window.location.assign("/game");
           }}
           onPointerEnter={() => {
             document.body.style.cursor = "pointer";
@@ -132,6 +132,7 @@ function AvatarUnit({ url }) {
 
 function AvatarUnitInternal({ url }) {
   let orbit = useRef();
+  let { camera } = useThree();
   let { scene, nodes } = useGLTF(url);
   let animix = useRef(new AnimationMixer(scene));
 
@@ -146,11 +147,10 @@ function AvatarUnitInternal({ url }) {
         item.frustumCulled = false;
       }
     });
+    //
     nodes.Head.getWorldPosition(camera.position);
     camera.position.z = 3;
   }, [scene]);
-
-  let { camera } = useThree();
 
   useFrame(() => {
     nodes.Head.getWorldPosition(orbit.current.target);
