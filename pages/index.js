@@ -167,11 +167,15 @@ function AvatarChooser({
     console.log(v);
   },
 }) {
+  const iframe = useRef();
+
   useEffect(() => {
     function receiveMessage(event) {
       setTimeout(() => {
         console.log(event.data);
-        onReady(event.data);
+        if (typeof event.data === "string") {
+          onReady(event.data);
+        }
         // https://d1a370nemizbjq.cloudfront.net/283ab29b-5ed6-4063-bf4c-a9739a7465bb.glb
       }, 0);
     }
@@ -184,6 +188,7 @@ function AvatarChooser({
 
   return (
     <iframe
+      ref={iframe}
       className="w-full h-full"
       src={"https://effectnode.readyplayer.me/"}
       allow={"camera *; microphone *"}
