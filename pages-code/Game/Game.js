@@ -18,7 +18,7 @@ function GameContent() {
   let [url, setURL] = useState(null);
 
   useEffect(() => {
-    if (url === null) {
+    if (url === null && typeof window !== undefined) {
       let str = window.localStorage(AVATAR_LOCAL_STORE_URL);
       // window.location = "/";
       if (typeof str === "string" && str.indexOf("http") === 0) {
@@ -26,12 +26,12 @@ function GameContent() {
       } else {
         window.location = "/";
       }
+    } else {
     }
   });
 
   return (
     <group>
-      {/*  */}
       {/*  */}
       <Floor></Floor>
       <directionalLight

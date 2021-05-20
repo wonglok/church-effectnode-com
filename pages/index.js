@@ -37,17 +37,39 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      {avatarURL && <AvatarReady url={avatarURL}></AvatarReady>}
-      {avatarURL && (
-        <div
-          onClick={() => setAvatarURL(false)}
-          className="absolute top-0 right-0 m-2 p-3 rounded-xl bg-yellow-400 text-white shadow-xl"
-        >
-          Customise Avatar
-          <div className="absolute top-0 right-0 p-3 bg-yellow-400 rounded-full -mr-1 -mt-1 animate-ping"></div>
-        </div>
-      )}
-      {avatarURL === false && <AvatarChooser onReady={onReady}></AvatarChooser>}
+      <Suspense
+        fallback={
+          <group scale={0.03} position-y={0} position-z={-0.1}>
+            <Text
+              color={"#EC2D2D"}
+              fontSize={12}
+              maxWidth={200}
+              lineHeight={1}
+              letterSpacing={0.02}
+              textAlign={"left"}
+              font="https://fonts.gstatic.com/s/raleway/v14/1Ptrg8zYS_SKggPNwK4vaqI.woff"
+              anchorX="center"
+              anchorY="middle"
+            >
+              Loading YOU...
+            </Text>
+          </group>
+        }
+      >
+        {avatarURL && <AvatarReady url={avatarURL}></AvatarReady>}
+        {avatarURL && (
+          <div
+            onClick={() => setAvatarURL(false)}
+            className="absolute top-0 right-0 m-2 p-3 rounded-xl bg-yellow-400 text-white shadow-xl"
+          >
+            Customise Avatar
+            <div className="absolute top-0 right-0 p-3 bg-yellow-400 rounded-full -mr-1 -mt-1 animate-ping"></div>
+          </div>
+        )}
+        {avatarURL === false && (
+          <AvatarChooser onReady={onReady}></AvatarChooser>
+        )}
+      </Suspense>
     </div>
   );
 }
@@ -69,25 +91,7 @@ function AvatarReady({ url }) {
 
 function AvatarUnit({ url }) {
   return (
-    <Suspense
-      fallback={
-        <group scale={0.03} position-y={0} position-z={-0.1}>
-          <Text
-            color={"#EC2D2D"}
-            fontSize={12}
-            maxWidth={200}
-            lineHeight={1}
-            letterSpacing={0.02}
-            textAlign={"left"}
-            font="https://fonts.gstatic.com/s/raleway/v14/1Ptrg8zYS_SKggPNwK4vaqI.woff"
-            anchorX="center"
-            anchorY="middle"
-          >
-            Loading YOU...
-          </Text>
-        </group>
-      }
-    >
+    <group>
       <group scale={0.04} position-y={2} position-z={-0.1}>
         <Text
           color={"#EC2D2D"}
@@ -113,7 +117,7 @@ function AvatarUnit({ url }) {
         </Text>
       </group>
       <AvatarUnitInternal url={url}></AvatarUnitInternal>
-    </Suspense>
+    </group>
   );
 }
 
