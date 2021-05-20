@@ -271,7 +271,7 @@ export function GameControls() {
 
       ctrls.current.object.position.x = Hand.avatarAt.x;
       ctrls.current.object.position.y =
-        ctrls.current.target.y + zoom.current.y * 1;
+        ctrls.current.target.y + zoom.current.y * 0.6;
       ctrls.current.object.position.z =
         ctrls.current.target.z + zoom.current.z * 1;
     }
