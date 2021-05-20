@@ -62,6 +62,32 @@ function AvatarReady({ url }) {
       <ambientLight intensity={0.2}></ambientLight>
       <EnvMap></EnvMap>
 
+      <AvatarUnit url={url}></AvatarUnit>
+    </Canvas>
+  );
+}
+
+function AvatarUnit({ url }) {
+  return (
+    <Suspense
+      fallback={
+        <group scale={0.03} position-y={0} position-z={-0.1}>
+          <Text
+            color={"#EC2D2D"}
+            fontSize={12}
+            maxWidth={200}
+            lineHeight={1}
+            letterSpacing={0.02}
+            textAlign={"left"}
+            font="https://fonts.gstatic.com/s/raleway/v14/1Ptrg8zYS_SKggPNwK4vaqI.woff"
+            anchorX="center"
+            anchorY="middle"
+          >
+            Loading...
+          </Text>
+        </group>
+      }
+    >
       <group scale={0.04} position-y={2} position-z={-0.1}>
         <Text
           color={"#EC2D2D"}
@@ -73,7 +99,7 @@ function AvatarReady({ url }) {
           font="https://fonts.gstatic.com/s/raleway/v14/1Ptrg8zYS_SKggPNwK4vaqI.woff"
           anchorX="center"
           anchorY="middle"
-          onClick={() => {
+          onPointerDown={() => {
             window.location.assign("/game?avatar=" + encodeURIComponent(url));
           }}
           onPointerEnter={() => {
@@ -86,22 +112,6 @@ function AvatarReady({ url }) {
           Start Game!
         </Text>
       </group>
-
-      <AvatarUnit url={url}></AvatarUnit>
-    </Canvas>
-  );
-}
-
-function AvatarUnit({ url }) {
-  return (
-    <Suspense
-      fallback={
-        <mesh>
-          <meshStandardMaterial color={"blue"}></meshStandardMaterial>
-          <sphereBufferGeometry args={[50, 24, 24]}></sphereBufferGeometry>
-        </mesh>
-      }
-    >
       <AvatarUnitInternal url={url}></AvatarUnitInternal>
     </Suspense>
   );
