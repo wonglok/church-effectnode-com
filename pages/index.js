@@ -83,7 +83,7 @@ function AvatarUnit({ url }) {
             anchorX="center"
             anchorY="middle"
           >
-            Loading...
+            Loading YOU...
           </Text>
         </group>
       }
