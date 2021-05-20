@@ -2,7 +2,7 @@ import { Canvas } from "@react-three/fiber";
 import { EnvMap } from "../EnvMap/EnvMap";
 import { Floor, GameControls, YourAvatar } from "../GameState/GameState";
 import router from "next/router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { AVATAR_LOCAL_STORE_URL } from "../../pages";
 export function Game() {
   const dpr = 1;
@@ -19,7 +19,7 @@ function GameContent() {
 
   useEffect(() => {
     if (url === null && typeof window !== undefined) {
-      let str = window.localStorage(AVATAR_LOCAL_STORE_URL);
+      let str = window.localStorage.getItem(AVATAR_LOCAL_STORE_URL);
       // window.location = "/";
       if (typeof str === "string" && str.indexOf("http") === 0) {
         setURL(str);

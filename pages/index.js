@@ -4,11 +4,17 @@ import Head from "next/head";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { AnimationMixer } from "three";
 import { EnvMap } from "../pages-code/EnvMap/EnvMap";
+import { makeSimpleShallowStore } from "../pages-code/GameState/GameState";
 // import { Game } from "../pages-code/Game/Game";
 // import styles from "../styles/Home.module.css";
 
 export const AVATAR_LOCAL_STORE_URL = "myavatarlink";
+
+export const Status = makeSimpleShallowStore({
+  isLoading: "loading",
+});
 export default function Home() {
+  Status.makeKeyReactive("isLoading");
   let [avatarURL, setAvatarURL] = useState(null);
 
   useEffect(() => {
@@ -37,39 +43,17 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <Suspense
-        fallback={
-          <group scale={0.03} position-y={0} position-z={-0.1}>
-            <Text
-              color={"#EC2D2D"}
-              fontSize={12}
-              maxWidth={200}
-              lineHeight={1}
-              letterSpacing={0.02}
-              textAlign={"left"}
-              font="https://fonts.gstatic.com/s/raleway/v14/1Ptrg8zYS_SKggPNwK4vaqI.woff"
-              anchorX="center"
-              anchorY="middle"
-            >
-              Loading YOU...
-            </Text>
-          </group>
-        }
-      >
-        {avatarURL && <AvatarReady url={avatarURL}></AvatarReady>}
-        {avatarURL && (
-          <div
-            onClick={() => setAvatarURL(false)}
-            className="absolute top-0 right-0 m-2 p-3 rounded-xl bg-yellow-400 text-white shadow-xl"
-          >
-            Customise Avatar
-            <div className="absolute top-0 right-0 p-3 bg-yellow-400 rounded-full -mr-1 -mt-1 animate-ping"></div>
-          </div>
-        )}
-        {avatarURL === false && (
-          <AvatarChooser onReady={onReady}></AvatarChooser>
-        )}
-      </Suspense>
+      {avatarURL && <AvatarReady url={avatarURL}></AvatarReady>}
+      {Status.isLoading === "done" && avatarURL && (
+        <div
+          onClick={() => setAvatarURL(false)}
+          className="absolute top-0 right-0 m-2 p-3 rounded-xl bg-yellow-400 text-white shadow-xl"
+        >
+          Customise Avatar
+          <div className="absolute top-0 right-0 p-3 bg-yellow-400 rounded-full -mr-1 -mt-1 animate-ping"></div>
+        </div>
+      )}
+      {avatarURL === false && <AvatarChooser onReady={onReady}></AvatarChooser>}
     </div>
   );
 }
@@ -89,9 +73,34 @@ function AvatarReady({ url }) {
   );
 }
 
+function ElementOnFinishLoading({}) {
+  useEffect(() => {
+    return () => {
+      Status.isLoading = "done";
+    };
+  }, []);
+  return (
+    <group scale={0.03} position-y={0} position-z={-0.1}>
+      <Text
+        color={"#EC2D2D"}
+        fontSize={12}
+        maxWidth={200}
+        lineHeight={1}
+        letterSpacing={0.02}
+        textAlign={"left"}
+        font="https://fonts.gstatic.com/s/raleway/v14/1Ptrg8zYS_SKggPNwK4vaqI.woff"
+        anchorX="center"
+        anchorY="middle"
+      >
+        Loading YOU...
+      </Text>
+    </group>
+  );
+}
+
 function AvatarUnit({ url }) {
   return (
-    <group>
+    <Suspense fallback={<ElementOnFinishLoading></ElementOnFinishLoading>}>
       <group scale={0.04} position-y={2} position-z={-0.1}>
         <Text
           color={"#EC2D2D"}
@@ -117,7 +126,7 @@ function AvatarUnit({ url }) {
         </Text>
       </group>
       <AvatarUnitInternal url={url}></AvatarUnitInternal>
-    </group>
+    </Suspense>
   );
 }
 
