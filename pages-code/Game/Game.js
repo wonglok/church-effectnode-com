@@ -26,9 +26,8 @@ function GameContent() {
       <ambientLight intensity={0.5}></ambientLight>
       <EnvMap></EnvMap>
       <GameControls></GameControls>
-      <Suspense fallback={null}>
-        <YourAvatar></YourAvatar>
-      </Suspense>
+
+      <YourAvatar></YourAvatar>
     </group>
   );
 }
