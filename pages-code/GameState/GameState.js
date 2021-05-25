@@ -177,9 +177,9 @@ export const Hand = makeSimpleShallowStore({
 });
 
 export function GameControls() {
-  const minLimit = 100;
+  const minLimit = 50;
   const maxLimit = 500;
-  const zoom = useRef(new Vector3(0, 400, 400));
+  const zoom = useRef(new Vector3(0, 250, 250));
 
   let { camera, gl } = useThree();
   let ctrls = useRef();
@@ -242,7 +242,7 @@ export function GameControls() {
 
     camera.position.x = 0;
     camera.position.y = 100;
-    camera.position.z = 150;
+    camera.position.z = 100;
     camera.rotation.y = 0;
 
     ctrl.minDistance = minLimit;
@@ -264,12 +264,13 @@ export function GameControls() {
     if (ctrls.current) {
       ctrls.current.update();
 
-      ctrls.current.target.copy(Hand.avatarHead);
+      ctrls.current.target.lerp(Hand.avatarHead, 0.3);
 
       ctrls.current.object.position.x = Hand.avatarAt.x;
       ctrls.current.object.position.y =
-        ctrls.current.target.y + zoom.current.y - 100;
-      ctrls.current.object.position.z = ctrls.current.target.z + zoom.current.z;
+        ctrls.current.target.y + zoom.current.y * 0.2;
+      ctrls.current.object.position.z =
+        ctrls.current.target.z + zoom.current.z * 2.0;
     }
   });
   return <group></group>;

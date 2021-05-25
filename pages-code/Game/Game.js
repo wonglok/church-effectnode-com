@@ -14,21 +14,21 @@ export function Game() {
   );
 }
 
-function GameContent() {
-  let [url, setURL] = useState(null);
+export function GameContent({ url }) {
+  // let [url, setURL] = useState(null);
 
-  useEffect(() => {
-    if (url === null && typeof window !== undefined) {
-      let str = window.localStorage.getItem(AVATAR_LOCAL_STORE_URL);
-      // window.location = "/";
-      if (typeof str === "string" && str.indexOf("http") === 0) {
-        setURL(str);
-      } else {
-        window.location = "/";
-      }
-    } else {
-    }
-  });
+  // useEffect(() => {
+  //   if (url === null && typeof window !== undefined) {
+  //     let str = window.localStorage.getItem(AVATAR_LOCAL_STORE_URL);
+  //     // window.location = "/";
+  //     if (typeof str === "string" && str.indexOf("http") === 0) {
+  //       setURL(str);
+  //     } else {
+  //       window.location = "/";
+  //     }
+  //   } else {
+  //   }
+  // });
 
   return (
     <group>

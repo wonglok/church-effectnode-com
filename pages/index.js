@@ -4,6 +4,7 @@ import Head from "next/head";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { AnimationMixer, Object3D, Vector3 } from "three";
 import { EnvMap } from "../pages-code/EnvMap/EnvMap";
+import { GameContent } from "../pages-code/Game/Game";
 import { makeSimpleShallowStore } from "../pages-code/GameState/GameState";
 // import { Game } from "../pages-code/Game/Game";
 // import styles from "../styles/Home.module.css";
@@ -12,10 +13,13 @@ export const AVATAR_LOCAL_STORE_URL = "myavatarlink";
 
 export const Status = makeSimpleShallowStore({
   loadingStage: "loading-screen",
+  webgl: "lobby",
+
+  url: null,
 });
 export default function Home() {
   Status.makeKeyReactive("loadingStage");
-  let [avatarURL, setAvatarURL] = useState(null);
+  Status.makeKeyReactive("url");
 
   useEffect(() => {
     let url = window.localStorage.getItem(AVATAR_LOCAL_STORE_URL);
@@ -25,15 +29,16 @@ export default function Home() {
       typeof url === "string" &&
       url.indexOf("http") === 0
     ) {
-      setAvatarURL(url);
+      Status.url = url;
     } else {
-      setAvatarURL(false);
+      Status.url = false;
     }
   }, []);
 
   let onReady = (url) => {
     window.localStorage.setItem(AVATAR_LOCAL_STORE_URL, url);
-    setAvatarURL(url);
+    Status.url = false;
+    Status.url = url;
   };
 
   return (
@@ -43,23 +48,44 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      {avatarURL && <AvatarURLReady url={avatarURL}></AvatarURLReady>}
-      {Status.loadingStage === "welcome-screen" && avatarURL && (
+      {Status.url && <CanvasBase></CanvasBase>}
+
+      {Status.loadingStage === "welcome-screen" && Status.url && (
         <div
-          onClick={() => setAvatarURL(false)}
+          onClick={() => (Status.url = false)}
           className="absolute top-0 right-0 m-2 p-3 rounded-xl bg-yellow-400 text-white shadow-xl"
         >
           Customise Avatar
           <div className="absolute top-0 right-0 p-3 bg-yellow-400 rounded-full -mr-1 -mt-1 animate-ping"></div>
         </div>
       )}
-      {avatarURL === false && <AvatarChooser onReady={onReady}></AvatarChooser>}
+      {Status.url === false && (
+        <AvatarChooser onReady={onReady}></AvatarChooser>
+      )}
     </div>
   );
 }
-function AvatarURLReady({ url }) {
+
+function CanvasBase() {
+  Status.makeKeyReactive("url");
+  Status.makeKeyReactive("webgl");
   return (
-    <Canvas>
+    <Canvas
+      dpr={
+        (typeof window.devicePixelRatio !== "undefined" &&
+          window.devicePixelRatio) ||
+        1.0
+      }
+    >
+      {Status.webgl === "lobby" && <Lobby url={Status.url}></Lobby>}
+      {Status.webgl === "game" && <GameContent url={Status.url}></GameContent>}
+    </Canvas>
+  );
+}
+
+function Lobby({ url }) {
+  return (
+    <group>
       <directionalLight
         intensity={0.2}
         position={[10, 10, 10]}
@@ -69,7 +95,7 @@ function AvatarURLReady({ url }) {
       <EnvMap></EnvMap>
 
       <AvatarUnit url={url}></AvatarUnit>
-    </Canvas>
+    </group>
   );
 }
 
@@ -113,7 +139,8 @@ function AvatarUnit({ url }) {
           anchorX="center"
           anchorY="middle"
           onPointerDown={() => {
-            window.location.assign("/game");
+            // window.location.assign("/game");
+            Status.webgl = "game";
           }}
           onPointerEnter={() => {
             document.body.style.cursor = "pointer";
@@ -125,12 +152,28 @@ function AvatarUnit({ url }) {
           Start Game!
         </Text>
       </group>
-      <AvatarUnitInternal url={url}></AvatarUnitInternal>
+      <AvatarUnitInternal
+        url={url}
+        onPointerDown={() => {
+          Status.webgl = "game";
+        }}
+        onPointerEnter={() => {
+          document.body.style.cursor = "pointer";
+        }}
+        onPointerLeave={() => {
+          document.body.style.cursor = "";
+        }}
+      ></AvatarUnitInternal>
     </Suspense>
   );
 }
 
-function AvatarUnitInternal({ url }) {
+function AvatarUnitInternal({
+  url,
+  onPointerDown,
+  onPointerEnter,
+  onPointerLeave,
+}) {
   let orbit = useRef();
   let { camera } = useThree();
   let { scene, nodes } = useGLTF(url);
@@ -179,7 +222,12 @@ function AvatarUnitInternal({ url }) {
     <group>
       <OrbitControls ref={orbit}></OrbitControls>
       <group>
-        <primitive object={scene}></primitive>
+        <primitive
+          onPointerEnter={onPointerEnter}
+          onPointerLeave={onPointerLeave}
+          onPointerDown={onPointerDown}
+          object={scene}
+        ></primitive>
       </group>
     </group>
   );
